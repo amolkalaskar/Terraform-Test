@@ -1,15 +1,30 @@
-resource "azurerm_linux_function_app" "this" {
-  name                = var.function_app_name
-  resource_group_name = var.resource_group_name
+resource "azurerm_storage_account" "sa" {
+  name                     = lower(replace(var.function_app_name, "-", "")) # must be globally unique
+  resource_group_name      = var.resource_group_name
+  location                 = var.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "plan" {
+  name                = "${var.function_app_name}-plan"
   location            = var.location
-  service_plan_id = "access"
+  resource_group_name = var.resource_group_name
+  os_type             = "Linux"
+  sku_name            = "Y1" # Consumption plan
+}
 
-  storage_account_name       = var.storage_account_name
-  storage_account_access_key = var.storage_account_key
+resource "azurerm_linux_function_app" "func" {
+  name                       = var.function_app_name
+  location                   = var.location
+  resource_group_name        = var.resource_group_name
+  service_plan_id            = azurerm_service_plan.plan.id
+  storage_account_name       = azurerm_storage_account.sa.name
+  storage_account_access_key = azurerm_storage_account.sa.primary_access_key
 
-  site_config {
-    application_stack {
-      node_version = "18"
-    }
+  site_config {}
+
+  app_settings = {
+    FUNCTIONS_WORKER_RUNTIME = "node"
   }
 }
