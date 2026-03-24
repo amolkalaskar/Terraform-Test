@@ -1,9 +1,3 @@
-variable "location" {
-  description = "Azure region"
-  type        = string
-}
-
-variable "rg-name" {
-  description = "Resource group name"
-  type        = string
-}
+variable "resource_group_name" {}
+variable "location" {}
+variable "function_app_name" {}
